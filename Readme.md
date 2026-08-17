@@ -8,7 +8,6 @@ It helps users discover suitable career roles based on the skills they already h
 - Matching skills
 - Skills the user needs to learn
 - Companies associated with the career
-- A short explanation of why the career matches their profile
 
 ---
 
@@ -184,3 +183,263 @@ The data is loaded using the seed script located at:
 
 ```text
 database/seed.py
+```
+---
+
+## How Career Matching Works
+
+When a user selects their existing skills, the frontend sends those skills to the Flask API:
+
+```text
+POST /api/recommendations
+```
+
+The API passes the selected skills to a parameterized Cypher query.
+
+The query:
+
+1. Finds career roles requiring the selected skills.
+2. Counts the matching skills.
+3. Finds all skills required by each role.
+4. Identifies skills the user still needs to learn.
+5. Finds companies offering each role.
+6. Calculates the match percentage.
+7. Returns the recommendations to the frontend.
+
+The match percentage is calculated as:
+
+```text
+Match Percentage =
+(Number of Matching Skills / Number of Required Skills) × 100
+```
+
+---
+
+## Main Cypher Query
+
+The recommendation query uses the `$skills` parameter rather than concatenating user input into the Cypher query.
+
+```cypher
+MATCH (role:JobRole)-[:REQUIRES]->(skill:Skill)
+WHERE skill.name IN $skills
+
+WITH role,
+     collect(DISTINCT skill.name) AS matching_skills,
+     count(DISTINCT skill) AS matched_count
+
+MATCH (role)-[:REQUIRES]->(required:Skill)
+
+WITH role,
+     matching_skills,
+     matched_count,
+     collect(DISTINCT required.name) AS required_skills,
+     count(DISTINCT required) AS required_count
+
+OPTIONAL MATCH (company:Company)-[:OFFERS]->(role)
+
+WITH role,
+     matching_skills,
+     matched_count,
+     required_skills,
+     required_count,
+     collect(DISTINCT company.name) AS companies
+
+RETURN role.title AS role,
+       matching_skills,
+       [skill IN required_skills
+        WHERE NOT skill IN matching_skills] AS missing_skills,
+       round(100.0 * matched_count / required_count) AS match_percentage,
+       companies
+
+ORDER BY match_percentage DESC
+```
+
+---
+
+## Multi-Hop Graph Query
+
+CareerGraph also uses graph traversal to find companies associated with career roles that require a particular skill.
+
+For example, this query finds companies connected to roles requiring Python:
+
+```cypher
+MATCH (company:Company)-[:OFFERS]->(role:JobRole)-[:REQUIRES]->(skill:Skill)
+WHERE skill.name = "Python"
+RETURN company.name AS company,
+       role.title AS role,
+       skill.name AS skill
+ORDER BY company.name
+```
+
+This represents a multi-hop traversal:
+
+```text
+Company
+   |
+ OFFERS
+   ↓
+JobRole
+   |
+REQUIRES
+   ↓
+Skill
+```
+
+This demonstrates how CareerGraph can navigate through multiple relationships in the graph to discover connections between companies, career roles, and skills.
+
+This type of relationship traversal is natural in a graph database because companies, career roles, and skills are directly connected through typed relationships. In a relational database, the same traversal would require joining multiple tables such as `Company`, `JobRole`, and `Skill`, making relationship-focused queries more complex as the number of connected entities grows.
+
+---
+
+## Project Structure
+
+```text
+CareerGraph/
+│
+├── app.py
+│
+├── database/
+│   └── seed.py
+│
+├── templates/
+│   └── index.html
+│
+├── test_connection.py
+│
+├── .gitignore
+│
+└── README.md
+```
+
+---
+
+## Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/shivanirao18/CareerGraph.git
+cd CareerGraph
+```
+
+### 2. Create a Virtual Environment
+
+On Windows:
+
+```powershell
+python -m venv venv
+```
+
+Activate it:
+
+```powershell
+venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+
+```powershell
+pip install flask python-dotenv neo4j
+```
+
+---
+
+## CognoDB Setup
+
+CareerGraph uses CognoDB Cloud as its graph database.
+
+### 1. Create a CognoDB Account
+
+Go to the CognoDB Cloud console and create an account.
+
+### 2. Create a Free Instance
+
+Create a free `c0` CognoDB instance and select a region.
+
+The instance provides a Bolt connection URI and database credentials.
+
+### 3. Get the Connection Details
+
+CognoDB provides:
+
+- Connection URI
+- Username
+- Password
+
+The application reads these values from environment variables.
+
+Create a `.env` file in the project root:
+
+```text
+COGNODB_URI=your_cognodb_uri
+COGNODB_USERNAME=your_username
+COGNODB_PASSWORD=your_password
+```
+
+Replace the placeholder values with your CognoDB credentials.
+
+### 4. Keep Credentials Private
+
+The `.env` file contains sensitive database credentials and must not be committed to GitHub.
+
+The project uses environment variables so database credentials are kept separate from the application source code.
+
+
+---
+
+## Seed the Database
+
+From the project root:
+
+```powershell
+python database/seed.py
+```
+
+The seed script creates:
+
+- Skills
+- Job roles
+- Students
+- Student-skill relationships
+- Companies
+- Company-role relationships
+
+Expected output:
+
+```text
+CareerGraph seed completed successfully!
+```
+
+---
+
+## Run the Application
+
+From the project root:
+
+```powershell
+python app.py
+```
+
+The application will start at:
+
+```text
+http://127.0.0.1:5000
+```
+
+Open that address in your browser.
+
+---
+
+## Test the Database Connection
+
+The application provides a database connection test endpoint:
+
+```text
+http://127.0.0.1:5000/test-db
+```
+
+A successful connection should return:
+
+```text
+CognoDB connection successful! Result: 1
+```
