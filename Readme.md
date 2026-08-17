@@ -146,3 +146,41 @@ The application provides:
                    ┌──────┴───────┐
                    │   Company    │
                    └──────────────┘
+```
+---
+
+## Example Data
+
+### Skills
+
+- Python
+- SQL
+- Excel
+- Power BI
+- Statistics
+
+### Career Roles
+
+- Data Analyst
+- Data Scientist
+- Business Analyst
+- Python Developer
+- ML Engineer
+
+### Companies
+
+- Cognizant
+- Infosys
+- TCS
+- Deloitte
+- Accenture
+- Microsoft
+- Amazon
+- IBM
+- EY
+- Google
+
+The data is loaded using the seed script located at:
+
+```text
+database/seed.py
