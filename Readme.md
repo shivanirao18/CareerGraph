@@ -263,6 +263,19 @@ ORDER BY match_percentage DESC
 ## Multi-Hop Graph Query
 
 CareerGraph also uses graph traversal to find companies associated with career roles that require a particular skill.
+### Why This Query Is Graph-Native
+
+The multi-hop query demonstrates a relationship that is naturally represented as a graph traversal.
+
+For example, starting from a skill such as Python, CareerGraph can traverse:
+
+Skill → JobRole → Company
+
+This allows the application to discover companies connected to a skill through the career roles that require it.
+
+In a relational database, answering this question would require joining multiple tables such as `skills`, `job_roles`, `job_role_skills`, `companies`, and `company_roles`. The graph query expresses the same relationship directly through typed edges, making relationship-based exploration more natural.
+
+This type of traversal is useful when the application needs to explore connections rather than simply retrieve rows based on a single table.
 
 For example, this query finds companies connected to roles requiring Python:
 
