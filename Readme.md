@@ -2,6 +2,10 @@
 
 CareerGraph is a graph-powered career recommendation application built using Flask and CognoDB.
 
+## Live Demo
+
+[CareerGraph Live Application](https://careergraph-oi12.onrender.com/)
+
 It helps users discover suitable career roles based on the skills they already have. For each recommended career, the application shows:
 
 - Match percentage
