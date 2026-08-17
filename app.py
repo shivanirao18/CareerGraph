@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
 from neo4j import GraphDatabase
+from neo4j.exceptions import Neo4jError, ServiceUnavailable
 
 
 load_dotenv()
@@ -26,12 +27,15 @@ def home():
 
 @app.route("/test-db")
 def test_db():
-    with driver.session() as session:
-        result = session.run("RETURN 1 AS test")
-        value = result.single()["test"]
+    try:
+        with driver.session() as session:
+            result = session.run("RETURN 1 AS test")
+            value = result.single()["test"]
 
-    return f"CognoDB connection successful! Result: {value}"
+        return f"CognoDB connection successful! Result: {value}"
 
+    except (ServiceUnavailable, Neo4jError):
+        return "Unable to connect to CognoDB.", 503
 
 
 @app.route("/api/recommendations", methods=["POST"])
@@ -79,14 +83,13 @@ RETURN role.title AS role,
 
 ORDER BY match_percentage DESC
 """
+    try:
+        with driver.session() as session:
+            result = session.run(query, skills=skills)
+            recommendations = []
 
-    with driver.session() as session:
-        result = session.run(query, skills=skills)
-
-        recommendations = []
-
-        for record in result:
-            recommendations.append({
+            for record in result:
+                recommendations.append({
                 "role": record["role"],
                 "matching_skills": record["matching_skills"],
                 "missing_skills": record["missing_skills"],
@@ -94,6 +97,9 @@ ORDER BY match_percentage DESC
                 "companies": record["companies"]
             })
 
-    return jsonify(recommendations)
+        return jsonify(recommendations)
+
+    except (ServiceUnavailable, Neo4jError):
+        return jsonify({"error": "Unable to connect to CognoDB. Please try again later."}), 503
 if __name__ == "__main__":
     app.run(debug=True)
