@@ -437,9 +437,29 @@ The application provides a database connection test endpoint:
 ```text
 http://127.0.0.1:5000/test-db
 ```
-
+---
 A successful connection should return:
 
 ```text
 CognoDB connection successful! Result: 1
 ```
+
+## Screenshots
+
+### CareerGraph Home Page
+
+The main interface allows users to select the skills they already have.
+
+![CareerGraph Home Page](screenshots/home.png)
+
+### Career Recommendations
+
+CareerGraph displays recommended roles with match percentages, matching skills, skills to learn, and associated companies.
+
+![Career Recommendations](screenshots/recommendations.png)
+
+### CognoDB Graph
+
+The graph database represents the relationships between students, skills, career roles, and companies.
+
+![CognoDB Graph](screenshots/graph.png)
