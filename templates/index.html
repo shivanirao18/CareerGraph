@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerGraph</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        .skills-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .skills-selection label {
+            background: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .skills-selection input {
+            width: auto;
+            margin-right: 6px;
+        }
+
+        input {
+            width: 70%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+        .percentage {
+            display: inline-block;
+            font-weight: bold;
+            font-size: 18px;
+            color: #2563eb;
+            background: #eff6ff;
+            padding: 7px 12px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+        .match-label {
+            font-size: 14px;
+            font-weight: normal;
+            margin-left: 10px;
+        }
+        .skills {
+            color: #555;
+            line-height: 1.7;
+            margin-top: 15px;
+        }
+        .companies {
+            color: #444;
+            line-height: 1.7;
+            margin-top: 15px;
+        }
+        .learning {
+            background: #fff7ed;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f97316;
+            margin-top: 15px;
+        }
+        .why-career {
+            color: #444;
+            line-height: 1.6;
+        }
+        .match-bar {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0 20px;
+        }
+        .match-fill {
+            height: 100%;
+            background: #2563eb;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .skills-learn {
+            background: #fff7ed;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        .skills-learn strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .skill-chip,.company-chip {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 4px 4px 4px 0;
+            border-radius: 15px;
+            background: #f1f5f9;
+            font-size: 14px;
+        }
+        .company-chip {
+            background: #eef2ff;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+        .header p {
+            color: #64748b;
+            font-size: 17px;
+            margin: 0;
+        }
+        .clear-button {
+            margin-left: 10px;
+            background: #e2e8f0;
+            color: #334155;
+        }
+        .clear-button:hover {
+            background: #cbd5e1;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+    <h1>CareerGraph</h1>
+
+    <p>
+        Discover career paths based on your skills and find out what to learn next.
+    </p>
+</div>
+
+    <div class="search-box">
+    <h2>Build your career profile</h2>
+
+<p class="subtitle">
+    Select the skills you already have.
+</p>
+
+    <div class="skills-selection">
+        <label>
+            <input type="checkbox" value="Python">
+            Python
+        </label>
+
+        <label>
+            <input type="checkbox" value="SQL">
+            SQL
+        </label>
+
+        <label>
+            <input type="checkbox" value="Excel">
+            Excel
+        </label>
+
+        <label>
+            <input type="checkbox" value="Power BI">
+            Power BI
+        </label>
+
+        <label>
+            <input type="checkbox" value="Statistics">
+            Statistics
+        </label>
+    </div>
+
+    <button onclick="findCareers()">
+    Find My Career Matches
+</button>
+
+<button class="clear-button" onclick="clearSkills()">
+    Clear Selection
+</button>
+</div>
+
+    <div id="results"></div>
+
+    <script>
+        async function findCareers() {
+    const results = document.getElementById("results");
+
+    const selectedSkills = Array.from(
+        document.querySelectorAll(
+            '.skills-selection input[type="checkbox"]:checked'
+        )
+    ).map(checkbox => checkbox.value);
+
+    if (selectedSkills.length === 0) {
+        results.innerHTML = "<p>Please select at least one skill.</p>";
+        return;
+    }
+
+    results.innerHTML = "<p>Finding career matches...</p>";
+
+    try {
+        const response = await fetch("/api/recommendations", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                skills: selectedSkills
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            results.innerHTML =
+                `<p>${data.error || "Something went wrong."}</p>`;
+            return;
+        }
+
+        if (data.length === 0) {
+            results.innerHTML =
+                "<p>No career matches found.</p>";
+            return;
+        }
+
+        results.innerHTML = "";
+
+        data.forEach(item => {
+            const card = document.createElement("div");
+
+            card.className = "card";
+
+            const companies =
+                item.companies && item.companies.length > 0
+                    ? item.companies.join(", ")
+                    : "No companies listed yet";
+
+            card.innerHTML = `
+    <h2>${item.role}</h2>
+
+    <p class="percentage">
+    ${item.match_percentage}% match
+    <span class="match-label">
+        ${
+            item.match_percentage >= 80
+                ? "Excellent match"
+                : item.match_percentage >= 50
+                    ? "Good match"
+                    : "Needs improvement"
+        }
+    </span>
+</p>
+<div class="match-bar">
+    <div
+        class="match-fill"
+        style="width: ${item.match_percentage}%"
+    ></div>
+</div>
+
+    <p class="skills">
+    <strong>Matching skills:</strong><br>
+    ${item.matching_skills.map(skill => `<span class="skill-chip">${skill}</span>`).join("")}
+    </p>
+
+    <p class="skills-learn">
+    <strong>Skills to learn:</strong>
+    ${
+    item.missing_skills.length > 0
+    ? item.missing_skills.join(" • ")
+    : "You already have all required skills!"
+    }
+    </p>
+
+    <p class="why-career">
+        <strong>Why this career?</strong><br>
+        ${
+            item.match_percentage === 100
+                ? `You already have all the required skills for ${item.role}.`
+                : `You already have ${item.matching_skills.length} of the required skills for ${item.role}.`
+        }
+    </p>
+
+    <p class="companies">
+    <strong>Companies:</strong><br>
+    ${
+    item.companies && item.companies.length > 0? item.companies.map(company => `<span class="company-chip">${company}</span>`).join(""): "No companies listed yet"
+    }
+    </p>
+`;
+
+            results.appendChild(card);
+        });
+
+        } catch (error) {
+        console.error(error);
+
+        results.innerHTML =
+            "<p>Unable to connect to the CareerGraph server.</p>";
+    }
+}
+
+function clearSkills() {
+    document.querySelectorAll(
+        '.skills-selection input[type="checkbox"]'
+    ).forEach(checkbox => {
+        checkbox.checked = false;
+    });
+
+    document.getElementById("results").innerHTML = "";
+}
+    </script>
+
+</body>
+</html>
