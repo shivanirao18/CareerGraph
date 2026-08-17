@@ -49,3 +49,100 @@ JobRole
    | OFFERS
    |
 Company
+---
+
+## Features
+
+### Career Matching
+
+Users select the skills they currently have and CareerGraph calculates a match percentage for available career roles.
+
+### Matching Skills
+
+The application shows which required skills the user already possesses.
+
+### Skills to Learn
+
+The application identifies skills required by a role that the user does not currently have.
+
+### Company Recommendations
+
+CareerGraph displays companies associated with each recommended career role.
+
+### Match Explanation
+
+Each recommendation includes a short explanation of why the role matches the user's current skills.
+
+### Interactive UI
+
+The application provides:
+
+- Skill selection
+- Loading state
+- Empty state
+- Career recommendation cards
+- Match progress bars
+- Skill chips
+- Company chips
+- Clear Selection functionality
+
+---
+
+## Technology Stack
+
+- **Python**
+- **Flask**
+- **CognoDB**
+- **Neo4j Python Driver**
+- **openCypher**
+- **HTML**
+- **CSS**
+- **JavaScript**
+- **Git / GitHub**
+
+---
+
+## Graph Data Model
+
+### Nodes
+
+| Node | Description |
+|---|---|
+| `Student` | Represents a user/student |
+| `Skill` | Represents a technical or analytical skill |
+| `JobRole` | Represents a career role |
+| `Company` | Represents a company associated with a career role |
+
+### Relationships
+
+| Relationship | Meaning |
+|---|---|
+| `Student -[:HAS_SKILL]-> Skill` | A student possesses a skill |
+| `JobRole -[:REQUIRES]-> Skill` | A career role requires a skill |
+| `Company -[:OFFERS]-> JobRole` | A company offers a career role |
+
+### Graph Structure
+
+```text
+                   ┌──────────────┐
+                   │   Student    │
+                   └──────┬───────┘
+                          │
+                      HAS_SKILL
+                          │
+                          ▼
+                   ┌──────────────┐
+                   │    Skill     │
+                   └──────▲───────┘
+                          │
+                       REQUIRES
+                          │
+                   ┌──────┴───────┐
+                   │   JobRole    │
+                   └──────▲───────┘
+                          │
+                         OFFERS
+                          │
+                   ┌──────┴───────┐
+                   │   Company    │
+                   └──────────────┘
